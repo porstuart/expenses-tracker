@@ -1,3 +1,6 @@
 ## Generate files ##
 bin
 build
+
+## VS Code ##
+.vscode
