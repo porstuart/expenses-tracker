@@ -6,6 +6,10 @@ build
 .vscode
 
 ## Gradle ##
-.gradle/buildOutputCleanup
-.gradle/8.8/executionHistory
-.gradle/file-system.probe
+# .gradle/buildOutputCleanup
+# .gradle/8.8/executionHistory
+# .gradle/file-system.probe
+# .gradle/
+
+## DS Store ##
+.DS_Store
