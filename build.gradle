@@ -23,12 +23,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter'
 
     // Flyway
-    implementation 'org.flywaydb:flyway-core:8.0.0'
+    implementation 'org.flywaydb:flyway-core:9.16.0'
 
     // utilities
-    implementation "org.projectlombok:lombok:1.18.22"
+    implementation "org.projectlombok:lombok:1.18.32"
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
     runtimeOnly 'org.postgresql:postgresql'
