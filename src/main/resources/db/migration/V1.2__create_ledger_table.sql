@@ -1,0 +1,12 @@
+CREATE TABLE ledger (
+    ledger_id BIGSERIAL PRIMARY KEY,
+    person_id BIGINT NOT NULL,
+    name VARCHAR(20) NOT NULL,
+    description TEXT,
+    currency VARCHAR(3) NOT NULL DEFAULT 'USD',
+    color VARCHAR(7) NOT NULL DEFAULT '#000000',
+    deleted BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (person_id) REFERENCES person(person_id) ON DELETE CASCADE
+);
