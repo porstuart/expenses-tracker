@@ -1,0 +1,38 @@
+package com.budget.model;
+
+import java.io.Serializable;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Table(name = "ledger")
+@Entity
+public class Ledger extends BaseEntity implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ledger_id")
+    private Long ledgerId;
+    
+    @Column(name = "person_id", nullable = false)
+    private Long personId;
+
+    @Column(name = "name", nullable = false, length = 20)
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency = "USD";
+
+    @Column(name = "color", nullable = false, length = 7)
+    private String color = "#000000";
+
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
+
+}
