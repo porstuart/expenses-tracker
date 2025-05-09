@@ -1,7 +1,5 @@
 package com.budget.model;
 
-import java.io.Serializable;
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +8,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "ledger")
 @Entity
-public class Ledger extends BaseEntity implements Serializable {
+public class Ledger extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
