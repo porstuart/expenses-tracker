@@ -5,32 +5,34 @@ import org.springframework.http.HttpStatus;
 public class ApiException extends RuntimeException {
     
     private static final long serialVersionUID = 1L;
-    private HttpStatus status;
+    private final HttpStatus status;
 
-    public ApiException(HttpStatus status, String message ) {
+    public ApiException(HttpStatus status, String message) {
         super(message);
+        if (status == null) {
+            throw new IllegalArgumentException("HttpStatus cannot be null");
+        }
         this.status = status;
     }
 
-    public ApiException(String message) {
-        super(message);
-    }
-
-    public ApiException(String message, Throwable exception) {
+    public ApiException(HttpStatus status, String message, Throwable exception) {
         super(message, exception);
+        if (status == null) {
+            throw new IllegalArgumentException("HttpStatus cannot be null");
+        }
+        this.status = status;
     }
 
     public ApiException(HttpStatus status, Throwable exception) {
         super(exception);
+        if (status == null) {
+            throw new IllegalArgumentException("HttpStatus cannot be null");
+        }
         this.status = status;
     }
 
     public HttpStatus getStatus() {
         return status;
-    }
-
-    public void setStatus(HttpStatus status) {
-        this.status = status;
     }
 
 }

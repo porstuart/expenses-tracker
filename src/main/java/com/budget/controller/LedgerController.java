@@ -22,8 +22,12 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 public class LedgerController {
 
+    private final LedgerService ledgerService;
+
     @Autowired
-    LedgerService ledgerService;
+    public LedgerController(LedgerService ledgerService) {
+        this.ledgerService = ledgerService;
+    }
 
     @GetMapping("v1/ledger/{ledgerId}")
     public ResponseEntity<Ledger> getLedgerById(@PathVariable Long ledgerId) {

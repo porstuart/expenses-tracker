@@ -22,8 +22,12 @@ public class LedgerServiceImpl implements LedgerService {
 
     private static final String LEDGER_NOT_FOUND = "Ledger not found.";
 
+    private final LedgerDao ledgerDao;
+
     @Autowired
-    private LedgerDao ledgerDao;
+    public LedgerServiceImpl(LedgerDao ledgerDao) {
+        this.ledgerDao = ledgerDao;
+    }
 
     @Override
     public Ledger getLedgerById(Long ledgerId) {
@@ -45,9 +49,7 @@ public class LedgerServiceImpl implements LedgerService {
     public Ledger saveLedger(Ledger ledgerModel) {
         validateLedger(ledgerModel);
         checkDuplicateLedgerName(ledgerModel.getLedgerId(), ledgerModel.getPersonId(), ledgerModel.getName());
-        Ledger savedLedger = ledgerDao.save(ledgerModel);
-
-        return savedLedger;
+        return ledgerDao.save(ledgerModel);
     }
 
     @Transactional
@@ -56,9 +58,7 @@ public class LedgerServiceImpl implements LedgerService {
         getLedgerById(ledgerModel.getLedgerId());
         validateLedger(ledgerModel);
         checkDuplicateLedgerName(ledgerModel.getLedgerId(), ledgerModel.getPersonId(), ledgerModel.getName());
-        Ledger updatedLedger = ledgerDao.save(ledgerModel);
-
-        return updatedLedger;
+        return ledgerDao.save(ledgerModel);
     }
 
     @Transactional
@@ -91,7 +91,7 @@ public class LedgerServiceImpl implements LedgerService {
         }
     }
 
-    private Boolean hasDuplicateLedgerName(Long ledgerId, Long personId, String ledgerName) {
+    private boolean hasDuplicateLedgerName(Long ledgerId, Long personId, String ledgerName) {
         List<Ledger> ledgerList = getAllLedgersByPersonId(personId);
 
         return ledgerList.stream()
