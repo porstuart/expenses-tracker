@@ -91,7 +91,7 @@ public class LedgerServiceImpl implements LedgerService {
         }
     }
 
-    private boolean hasDuplicateLedgerName(Long ledgerId, Long personId, String ledgerName) {
+    private Boolean hasDuplicateLedgerName(Long ledgerId, Long personId, String ledgerName) {
         List<Ledger> ledgerList = getAllLedgersByPersonId(personId);
 
         return ledgerList.stream()
