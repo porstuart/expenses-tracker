@@ -11,7 +11,7 @@ import org.springframework.boot.SpringApplication;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BudgetApplicationTest {
+class BudgetApplicationTest {
 
     @Mock
     private SpringApplication springApplication;
