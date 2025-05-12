@@ -15,8 +15,7 @@ public class Ledger extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ledger_id")
     private Long ledgerId;
-    
-    @NotBlank(message = "Person id is required.")
+
     @Column(name = "person_id", nullable = false)
     private Long personId;
 

@@ -22,6 +22,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class LedgerServiceImplTest {
 
+    private static final String USD_CURRENCY = "USD";
+
     @Mock
     private LedgerDao ledgerDao;
 
@@ -36,7 +38,7 @@ public class LedgerServiceImplTest {
         ledger.setLedgerId(1L);
         ledger.setPersonId(100L);
         ledger.setName("Personal Budget");
-        ledger.setCurrency("USD");
+        ledger.setCurrency(USD_CURRENCY);
         ledger.setDeleted(false);
     }
 
@@ -107,7 +109,7 @@ public class LedgerServiceImplTest {
     void saveLedger_NullPersonId() {
         Ledger invalidLedger = new Ledger();
         invalidLedger.setName("Test");
-        invalidLedger.setCurrency("USD");
+        invalidLedger.setCurrency(USD_CURRENCY);
 
         ApiException exception = assertThrows(ApiException.class, () -> ledgerService.saveLedger(invalidLedger));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -118,7 +120,7 @@ public class LedgerServiceImplTest {
     void saveLedger_NullName() {
         Ledger invalidLedger = new Ledger();
         invalidLedger.setPersonId(100L);
-        invalidLedger.setCurrency("USD");
+        invalidLedger.setCurrency(USD_CURRENCY);
 
         ApiException exception = assertThrows(ApiException.class, () -> ledgerService.saveLedger(invalidLedger));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -145,7 +147,7 @@ public class LedgerServiceImplTest {
         existingLedger.setLedgerId(2L);
         existingLedger.setPersonId(100L);
         existingLedger.setName("Personal Budget");
-        existingLedger.setCurrency("USD");
+        existingLedger.setCurrency(USD_CURRENCY);
         existingLedger.setDeleted(false);
 
         when(ledgerDao.findAllByPersonIdAndDeletedFalse(100L)).thenReturn(List.of(existingLedger));
