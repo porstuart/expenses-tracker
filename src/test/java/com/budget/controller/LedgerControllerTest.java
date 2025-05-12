@@ -27,7 +27,7 @@ import com.budget.service.LedgerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(LedgerController.class)
-public class LedgerControllerTest {
+class LedgerControllerTest {
 
     private static final String TEST_LEDGER_NAME = "Test Ledger";
     private static final String LEDGER_URL = "/v1/ledger";
@@ -45,7 +45,7 @@ public class LedgerControllerTest {
     private List<Ledger> testLedgerList;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         // Initialize test data
         testLedger = new Ledger();
         testLedger.setLedgerId(1L);
@@ -63,7 +63,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testGetLedgerById() throws Exception {
+    void testGetLedgerById() throws Exception {
         when(ledgerService.getLedgerById(1L)).thenReturn(testLedger);
 
         mockMvc.perform(get(LEDGER_URL + "/1")
@@ -78,7 +78,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testGetAllLedgersByPersonId() throws Exception {
+    void testGetAllLedgersByPersonId() throws Exception {
         when(ledgerService.getAllLedgersByPersonId(100L)).thenReturn(testLedgerList);
 
         mockMvc.perform(get("/v1/ledgers/100")
@@ -94,7 +94,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testCreateLedger() throws Exception {
+    void testCreateLedger() throws Exception {
         when(ledgerService.saveLedger(any(Ledger.class))).thenReturn(testLedger);
 
         mockMvc.perform(post(LEDGER_URL)
@@ -110,7 +110,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testUpdateLedger() throws Exception {
+    void testUpdateLedger() throws Exception {
         when(ledgerService.updateLedger(any(Ledger.class))).thenReturn(testLedger);
 
         mockMvc.perform(put(LEDGER_URL)
@@ -124,7 +124,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testDeleteLedger() throws Exception {
+    void testDeleteLedger() throws Exception {
         doNothing().when(ledgerService).deleteLedger(1L);
 
         mockMvc.perform(put(LEDGER_URL + "/1/delete")
@@ -135,7 +135,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testCreateLedgerWithInvalidData() throws Exception {
+    void testCreateLedgerWithInvalidData() throws Exception {
         // Create an invalid ledger with null name
         Ledger invalidLedger = new Ledger();
         invalidLedger.setPersonId(100L);
@@ -152,7 +152,7 @@ public class LedgerControllerTest {
     }
 
     @Test
-    public void testUpdateLedgerWithInvalidData() throws Exception {
+    void testUpdateLedgerWithInvalidData() throws Exception {
         // Create an invalid ledger with null name
         Ledger invalidLedger = new Ledger();
         invalidLedger.setLedgerId(1L);

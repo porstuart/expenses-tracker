@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LedgerServiceImplTest {
+class LedgerServiceImplTest {
 
     private static final String USD_CURRENCY = "USD";
 
