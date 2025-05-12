@@ -1,0 +1,168 @@
+package com.budget.controller;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+
+import com.budget.model.Ledger;
+import com.budget.service.LedgerService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@WebMvcTest(LedgerController.class)
+public class LedgerControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
+    private LedgerService ledgerService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private Ledger testLedger;
+    private List<Ledger> testLedgerList;
+
+    @BeforeEach
+    public void setup() {
+        // Initialize test data
+        testLedger = new Ledger();
+        testLedger.setLedgerId(1L);
+        testLedger.setName("Test Ledger");
+        testLedger.setPersonId(100L);
+        testLedger.setDeleted(false);
+
+        Ledger secondLedger = new Ledger();
+        secondLedger.setLedgerId(2L);
+        secondLedger.setName("Another Ledger");
+        secondLedger.setPersonId(100L);
+        secondLedger.setDeleted(false);
+
+        testLedgerList = Arrays.asList(testLedger, secondLedger);
+    }
+
+    @Test
+    public void testGetLedgerById() throws Exception {
+        when(ledgerService.getLedgerById(1L)).thenReturn(testLedger);
+
+        mockMvc.perform(get("/v1/ledger/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ledgerId").value(1))
+                .andExpect(jsonPath("$.name").value("Test Ledger"))
+                .andExpect(jsonPath("$.personId").value(100))
+                .andExpect(jsonPath("$.deleted").value(false));
+
+        verify(ledgerService, times(1)).getLedgerById(1L);
+    }
+
+    @Test
+    public void testGetAllLedgersByPersonId() throws Exception {
+        when(ledgerService.getAllLedgersByPersonId(100L)).thenReturn(testLedgerList);
+
+        mockMvc.perform(get("/v1/ledgers/100")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].ledgerId").value(1))
+                .andExpect(jsonPath("$[0].name").value("Test Ledger"))
+                .andExpect(jsonPath("$[1].ledgerId").value(2))
+                .andExpect(jsonPath("$[1].name").value("Another Ledger"));
+
+        verify(ledgerService, times(1)).getAllLedgersByPersonId(100L);
+    }
+
+    @Test
+    public void testCreateLedger() throws Exception {
+        when(ledgerService.saveLedger(any(Ledger.class))).thenReturn(testLedger);
+
+        mockMvc.perform(post("/v1/ledger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testLedger)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.ledgerId").value(1))
+                .andExpect(jsonPath("$.name").value("Test Ledger"))
+                .andExpect(jsonPath("$.personId").value(100))
+                .andExpect(jsonPath("$.deleted").value(false));
+
+        verify(ledgerService, times(1)).saveLedger(any(Ledger.class));
+    }
+
+    @Test
+    public void testUpdateLedger() throws Exception {
+        when(ledgerService.updateLedger(any(Ledger.class))).thenReturn(testLedger);
+
+        mockMvc.perform(put("/v1/ledger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(testLedger)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ledgerId").value(1))
+                .andExpect(jsonPath("$.name").value("Test Ledger"));
+
+        verify(ledgerService, times(1)).updateLedger(any(Ledger.class));
+    }
+
+    @Test
+    public void testDeleteLedger() throws Exception {
+        doNothing().when(ledgerService).deleteLedger(1L);
+
+        mockMvc.perform(put("/v1/ledger/1/delete")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        verify(ledgerService, times(1)).deleteLedger(1L);
+    }
+
+    @Test
+    public void testCreateLedgerWithInvalidData() throws Exception {
+        // Create an invalid ledger with null name
+        Ledger invalidLedger = new Ledger();
+        invalidLedger.setPersonId(100L);
+        invalidLedger.setDeleted(false);
+        // Name is null which should trigger validation error
+
+        mockMvc.perform(post("/v1/ledger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidLedger)))
+                .andExpect(status().isBadRequest());
+
+        // Service should not be called for invalid data
+        verify(ledgerService, times(0)).saveLedger(any(Ledger.class));
+    }
+
+    @Test
+    public void testUpdateLedgerWithInvalidData() throws Exception {
+        // Create an invalid ledger with null name
+        Ledger invalidLedger = new Ledger();
+        invalidLedger.setLedgerId(1L);
+        invalidLedger.setPersonId(100L);
+        invalidLedger.setDeleted(false);
+        // Name is null which should trigger validation error
+
+        mockMvc.perform(put("/v1/ledger")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidLedger)))
+                .andExpect(status().isBadRequest());
+
+        // Service should not be called for invalid data
+        verify(ledgerService, times(0)).updateLedger(any(Ledger.class));
+    }
+}

@@ -93,7 +93,11 @@ jacocoTestReport {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
                 '**/exception/**',
-                '**/model/**'
+                '**/model/**',
+                '**/dao/**',
+                '**/config/**',
+                '**/type/**',
+                'com/budget/BudgetApplication.class'
             ])
         }))
     }

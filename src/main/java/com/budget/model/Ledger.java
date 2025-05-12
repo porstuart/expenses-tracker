@@ -1,6 +1,7 @@
 package com.budget.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -15,15 +16,18 @@ public class Ledger extends BaseEntity {
     @Column(name = "ledger_id")
     private Long ledgerId;
     
+    @NotBlank(message = "Person id is required.")
     @Column(name = "person_id", nullable = false)
     private Long personId;
 
+    @NotBlank(message = "Ledger name is required.")
     @Column(name = "name", nullable = false, length = 20)
     private String name;
 
     @Column(name = "description")
     private String description;
 
+    @NotBlank(message = "Ledger currency is required.")
     @Column(name = "currency", nullable = false, length = 3)
     private String currency = "USD";
 
