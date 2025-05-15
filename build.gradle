@@ -12,7 +12,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     sourceCompatibility = '21'
-    targetCompatibility = '21' // Ensure target compatibility matches source
+    targetCompatibility = '21'
 }
 
 repositories {
@@ -28,6 +28,7 @@ dependencies {
 
     // Flyway
     implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
 
     // Utilities
     implementation 'org.projectlombok:lombok:1.18.32'
@@ -38,18 +39,17 @@ dependencies {
 
     // Test dependencies
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    // Let Spring Boot manage JUnit and Mockito versions
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter' // For better JUnit 5 integration
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
 
 flyway {
     driver = 'org.postgresql.Driver'
     url = 'jdbc:postgresql://localhost:5432/budgetapp'
     user = 'budgetapp'
-    password = System.getenv('DB_PASSWORD') ?: 'password'
+    password = 'password'
     locations = ['classpath:db/migration']
     cleanDisabled = false
 }

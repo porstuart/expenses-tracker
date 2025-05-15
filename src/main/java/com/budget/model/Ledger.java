@@ -30,9 +30,6 @@ public class Ledger extends BaseEntity {
     @Column(name = "currency", nullable = false, length = 3)
     private String currency = "USD";
 
-    @Column(name = "color", nullable = false, length = 7)
-    private String color = "#000000";
-
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
 
