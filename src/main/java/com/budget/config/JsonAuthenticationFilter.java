@@ -3,6 +3,7 @@ package com.budget.config;
 import com.budget.dao.PersonDao;
 import com.budget.model.Person;
 import com.budget.utilities.JwtUtil;
+import com.budget.utilities.StringUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -81,7 +82,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
             String username = requestMap.get("username");
             String password = requestMap.get("password");
 
-            if (username == null || password == null || username.trim().isEmpty() || password.isEmpty()) {
+            if (StringUtil.checkEmptyString(username) || StringUtil.checkEmptyString(password)) {
                 logger.warn("Login failed: Username or password missing or empty");
                 throw new AuthenticationException("Username and password are required") {};
             }
@@ -289,9 +290,9 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
         status.put("lockoutDurationMinutes", LOCKOUT_DURATION_MINUTES);
         
         Map<String, Object> accountStatus = new HashMap<>();
+        Map<String, Object> userStatus = new HashMap<>();
         for (Map.Entry<String, Integer> entry : loginAttempts.entrySet()) {
             String username = entry.getKey();
-            Map<String, Object> userStatus = new HashMap<>();
             userStatus.put("attempts", entry.getValue());
             userStatus.put("isLocked", isAccountLocked(username));
             if (lockoutTimes.containsKey(username)) {

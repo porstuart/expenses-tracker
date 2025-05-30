@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.budget.dao.PersonDao;
 import com.budget.model.Person;
 import com.budget.service.PersonService;
+import com.budget.utilities.StringUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,12 +25,12 @@ public class PersonServiceImpl implements PersonService {
     @Override
     @Transactional
     public void registerUser(String username, String password) {
-        if (username == null || username.trim().isEmpty()) {
+        if (StringUtil.checkEmptyString(username)) {
             log.error("Registration failed: Username cannot be empty");
             throw new IllegalArgumentException("Username cannot be empty");
         }
 
-        if (password == null || password.trim().isEmpty()) {
+        if (StringUtil.checkEmptyString(password)) {
             log.error("Registration failed: Password cannot be empty");
             throw new IllegalArgumentException("Password cannot be empty");
         }
