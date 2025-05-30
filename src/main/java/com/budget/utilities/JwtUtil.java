@@ -39,7 +39,7 @@ public class JwtUtil {
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
+        Map<String, Object> claims = new ConcurrentHashMap<>();
         claims.put("roles", userDetails.getAuthorities());
         claims.put("type", "refresh");
         return createToken(claims, userDetails.getUsername(), true);
