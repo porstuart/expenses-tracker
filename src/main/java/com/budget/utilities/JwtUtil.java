@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 @Component
@@ -33,13 +32,13 @@ public class JwtUtil {
     private long JWT_REFRESH_EXPIRATION;
 
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new ConcurrentHashMap<>();
+        Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities());
         return createToken(claims, userDetails.getUsername(), false);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        Map<String, Object> claims = new ConcurrentHashMap<>();
+        Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities());
         claims.put("type", "refresh");
         return createToken(claims, userDetails.getUsername(), true);

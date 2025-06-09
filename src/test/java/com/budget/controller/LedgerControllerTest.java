@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class LedgerControllerTest {
 
     private static final String TEST_LEDGER_NAME = "Test Ledger";
+    private static final String TEST_USER_NAME = "testUser";
     private static final String LEDGER_URL = "/v1/ledger";
 
     @Autowired
@@ -69,7 +70,7 @@ class LedgerControllerTest {
         when(ledgerService.getLedgerById(1L)).thenReturn(testLedger);
 
         mockMvc.perform(get(LEDGER_URL + "/1")
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ledgerId").value(1))
@@ -85,7 +86,7 @@ class LedgerControllerTest {
         when(ledgerService.getAllLedgersByPersonId(100L)).thenReturn(testLedgerList);
 
         mockMvc.perform(get("/v1/ledgers/100")
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -103,7 +104,7 @@ class LedgerControllerTest {
 
         mockMvc.perform(post(LEDGER_URL)
                 .with(csrf())
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testLedger)))
                 .andExpect(status().isCreated())
@@ -121,7 +122,7 @@ class LedgerControllerTest {
 
         mockMvc.perform(put(LEDGER_URL)
                 .with(csrf())
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testLedger)))
                 .andExpect(status().isOk())
@@ -137,7 +138,7 @@ class LedgerControllerTest {
 
         mockMvc.perform(put(LEDGER_URL + "/1/delete")
                 .with(csrf())
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -154,7 +155,7 @@ class LedgerControllerTest {
 
         mockMvc.perform(post(LEDGER_URL)
                 .with(csrf())
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidLedger)))
                 .andExpect(status().isBadRequest());
@@ -174,7 +175,7 @@ class LedgerControllerTest {
 
         mockMvc.perform(put(LEDGER_URL)
                 .with(csrf())
-                .with(user("testUser"))
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidLedger)))
                 .andExpect(status().isBadRequest());

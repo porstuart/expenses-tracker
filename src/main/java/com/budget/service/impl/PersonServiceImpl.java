@@ -1,8 +1,9 @@
 package com.budget.service.impl;
 
+import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -114,7 +115,7 @@ public class PersonServiceImpl implements PersonService {
     }
 
     private void checkUsernameAvailability(String username) {
-        String normalizedUsername = username.trim().toLowerCase();
+        String normalizedUsername = username.trim().toLowerCase(Locale.ROOT);
 
         if (personDao.existsByUsername(normalizedUsername)) {
             log.error("Registration failed: Username already exists: {}", username);
