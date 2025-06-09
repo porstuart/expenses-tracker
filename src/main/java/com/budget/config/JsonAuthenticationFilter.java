@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -39,8 +40,8 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JwtUtil jwtUtil;
     private PersonDao personDao;
-    private final Map<String, Integer> loginAttempts = new HashMap<>();
-    private final Map<String, LocalDateTime> lockoutTimes = new HashMap<>();
+    private final Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
+    private final Map<String, LocalDateTime> lockoutTimes = new ConcurrentHashMap<>();
 
     public JsonAuthenticationFilter(AuthenticationManager authenticationManager,
                                    JwtUtil jwtUtil) {
