@@ -5,6 +5,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -30,6 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class LedgerControllerTest {
 
     private static final String TEST_LEDGER_NAME = "Test Ledger";
+    private static final String TEST_USER_NAME = "testUser";
     private static final String LEDGER_URL = "/v1/ledger";
 
     @Autowired
@@ -67,6 +70,7 @@ class LedgerControllerTest {
         when(ledgerService.getLedgerById(1L)).thenReturn(testLedger);
 
         mockMvc.perform(get(LEDGER_URL + "/1")
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ledgerId").value(1))
@@ -82,6 +86,7 @@ class LedgerControllerTest {
         when(ledgerService.getAllLedgersByPersonId(100L)).thenReturn(testLedgerList);
 
         mockMvc.perform(get("/v1/ledgers/100")
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -98,6 +103,8 @@ class LedgerControllerTest {
         when(ledgerService.saveLedger(any(Ledger.class))).thenReturn(testLedger);
 
         mockMvc.perform(post(LEDGER_URL)
+                .with(csrf())
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testLedger)))
                 .andExpect(status().isCreated())
@@ -114,6 +121,8 @@ class LedgerControllerTest {
         when(ledgerService.updateLedger(any(Ledger.class))).thenReturn(testLedger);
 
         mockMvc.perform(put(LEDGER_URL)
+                .with(csrf())
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testLedger)))
                 .andExpect(status().isOk())
@@ -128,6 +137,8 @@ class LedgerControllerTest {
         doNothing().when(ledgerService).deleteLedger(1L);
 
         mockMvc.perform(put(LEDGER_URL + "/1/delete")
+                .with(csrf())
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
@@ -143,6 +154,8 @@ class LedgerControllerTest {
         // Name is null which should trigger validation error
 
         mockMvc.perform(post(LEDGER_URL)
+                .with(csrf())
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidLedger)))
                 .andExpect(status().isBadRequest());
@@ -161,6 +174,8 @@ class LedgerControllerTest {
         // Name is null which should trigger validation error
 
         mockMvc.perform(put(LEDGER_URL)
+                .with(csrf())
+                .with(user(TEST_USER_NAME))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidLedger)))
                 .andExpect(status().isBadRequest());
