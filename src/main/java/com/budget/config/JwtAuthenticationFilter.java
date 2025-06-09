@@ -1,5 +1,6 @@
 package com.budget.config;
 
+import com.budget.model.authentication.AuthenticationResult;
 import com.budget.utilities.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         
         if (jwt == null) {
             logger.debug("No valid Bearer token found in request to {}", requestPath);
-            return AuthenticationResult.success(); // No token is acceptable for some endpoints
+            return AuthenticationResult.successAuthenticated();
         }
 
         return authenticateWithJwt(jwt, request, requestPath);
@@ -91,7 +92,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            return AuthenticationResult.success(); // Already authenticated
+            return AuthenticationResult.successAuthenticated();
         }
 
         return validateAndSetAuthentication(jwt, username, request, requestPath);
@@ -123,7 +124,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             setSecurityContext(userDetails, request);
             logger.info("Successfully authenticated user {} for request to {}", username, requestPath);
             
-            return AuthenticationResult.success();
+            return AuthenticationResult.successAuthenticated();
             
         } catch (Exception e) {
             logger.error("Authentication error for user {} in request to {}: {}", username, requestPath, e.getMessage());

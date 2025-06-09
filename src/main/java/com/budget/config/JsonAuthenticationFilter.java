@@ -2,6 +2,7 @@ package com.budget.config;
 
 import com.budget.dao.PersonDao;
 import com.budget.model.Person;
+import com.budget.model.authentication.LoginCredentials;
 import com.budget.utilities.JwtUtil;
 import com.budget.utilities.StringUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -27,6 +28,7 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
     private static final Logger logger = LoggerFactory.getLogger(JsonAuthenticationFilter.class);
     private static final int MAX_LOGIN_ATTEMPTS = 5;
     private static final long LOCKOUT_DURATION_MINUTES = 15;
+    private static final String DateTimeFormatter_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final JwtUtil jwtUtil;
@@ -56,22 +59,35 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
     }
 
     // Store the current request data for use in other methods
-    private ThreadLocal<Map<String, String>> currentRequestData = new ThreadLocal<>();
+    private final ThreadLocal<Map<String, String>> currentRequestData = new ThreadLocal<>();
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException {
+        
+        validateContentType(request);
+        
+        LoginCredentials credentials = extractLoginCredentials(request);
+        
+        validateCredentials(credentials);
+        
+        checkAccountLockout(credentials.getUsername());
+        
+        return performAuthentication(request, credentials);
+    }
+
+    private void validateContentType(HttpServletRequest request) throws AuthenticationException {
         String contentType = request.getContentType();
-        if (contentType == null || !contentType.toLowerCase().contains("application/json")) {
+        if (contentType == null || !contentType.toLowerCase(Locale.ROOT).contains("application/json")) {
             logger.warn("Invalid content type for login: {}", contentType);
             throw new AuthenticationException("Content-Type must be application/json") {};
         }
+    }
 
+    private LoginCredentials extractLoginCredentials(HttpServletRequest request) throws AuthenticationException {
         try {
-            // Cache request body
             byte[] requestBody = StreamUtils.copyToByteArray(request.getInputStream());
-            HttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(request, requestBody);
-
+            
             Map<String, String> requestMap = objectMapper.readValue(
                 requestBody,
                 new TypeReference<Map<String, String>>() {}
@@ -82,42 +98,70 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
             
             String username = requestMap.get("username");
             String password = requestMap.get("password");
-
-            if (StringUtil.checkEmptyString(username) || StringUtil.checkEmptyString(password)) {
-                logger.warn("Login failed: Username or password missing or empty");
-                throw new AuthenticationException("Username and password are required") {};
-            }
-            username = username.trim().replaceAll("[^a-zA-Z0-9@._-]", "");
-
-            // Rate limiting - clean expired lockouts first
-            cleanExpiredLockouts();
             
-            logger.debug("Checking lockout for user: {}. Attempts: {}, Locked until: {}",
-                username, loginAttempts.getOrDefault(username, 0), 
-                lockoutTimes.get(username) != null ? 
-                    lockoutTimes.get(username).plusMinutes(LOCKOUT_DURATION_MINUTES).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : 
-                    "Not locked");
+            return new LoginCredentials(username, password, requestBody);
             
-            if (isAccountLocked(username)) {
-                LocalDateTime unlockTime = lockoutTimes.get(username).plusMinutes(LOCKOUT_DURATION_MINUTES);
-                logger.warn("Account locked for user: {}. Will be unlocked at: {}", username, unlockTime);
-                throw new AuthenticationException(
-                    String.format("Account temporarily locked due to %d failed attempts. Try again after %s", 
-                        MAX_LOGIN_ATTEMPTS, unlockTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                ) {};
-            }
-
-            logger.info("Attempting authentication for user: {} (Attempt #{} out of {})", 
-                username, loginAttempts.getOrDefault(username, 0) + 1, MAX_LOGIN_ATTEMPTS);
-
-            UsernamePasswordAuthenticationToken authRequest =
-                    new UsernamePasswordAuthenticationToken(username, password);
-            setDetails(wrappedRequest, authRequest);
-            return this.getAuthenticationManager().authenticate(authRequest);
         } catch (IOException e) {
             logger.error("Failed to parse login request: {}", e.getMessage());
             throw new AuthenticationException("Invalid JSON format") {};
         }
+    }
+
+    private void validateCredentials(LoginCredentials credentials) throws AuthenticationException {
+        if (StringUtil.checkEmptyString(credentials.getUsername()) || 
+            StringUtil.checkEmptyString(credentials.getPassword())) {
+            logger.warn("Login failed: Username or password missing or empty");
+            throw new AuthenticationException("Username and password are required") {};
+        }
+    }
+
+    private void checkAccountLockout(String username) throws AuthenticationException {
+        cleanExpiredLockouts();
+        
+        logLockoutStatus(username);
+        
+        if (isAccountLocked(username)) {
+            handleAccountLocked(username);
+        }
+    }
+
+    private void logLockoutStatus(String username) {
+        String lockedUntil = lockoutTimes.get(username) != null ? 
+            lockoutTimes.get(username).plusMinutes(LOCKOUT_DURATION_MINUTES).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) : 
+            "Not locked";
+            
+        logger.debug("Checking lockout for user: {}. Attempts: {}, Locked until: {}",
+            username, loginAttempts.getOrDefault(username, 0), lockedUntil);
+    }
+
+    private void handleAccountLocked(String username) throws AuthenticationException {
+        LocalDateTime unlockTime = lockoutTimes.get(username).plusMinutes(LOCKOUT_DURATION_MINUTES);
+        logger.warn("Account locked for user: {}. Will be unlocked at: {}", username, unlockTime);
+        
+        String errorMessage = String.format(
+            "Account temporarily locked due to %d failed attempts. Try again after %s", 
+            MAX_LOGIN_ATTEMPTS, 
+            unlockTime.format(DateTimeFormatter.ofPattern(DateTimeFormatter_PATTERN))
+        );
+        
+        throw new AuthenticationException(errorMessage) {};
+    }
+
+    private Authentication performAuthentication(HttpServletRequest request, LoginCredentials credentials) 
+            throws AuthenticationException {
+        
+        String sanitizedUsername = credentials.getUsername().trim().replaceAll("[^a-zA-Z0-9@._-]", "");
+        
+        logger.info("Attempting authentication for user: {} (Attempt #{} out of {})", 
+            sanitizedUsername, loginAttempts.getOrDefault(sanitizedUsername, 0) + 1, MAX_LOGIN_ATTEMPTS);
+
+        HttpServletRequest wrappedRequest = new CachedBodyHttpServletRequest(request, credentials.getRequestBody());
+        
+        UsernamePasswordAuthenticationToken authRequest =
+                new UsernamePasswordAuthenticationToken(sanitizedUsername, credentials.getPassword());
+        setDetails(wrappedRequest, authRequest);
+        
+        return this.getAuthenticationManager().authenticate(authRequest);
     }
 
     @Override
@@ -194,7 +238,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
         if (currentAttempts >= MAX_LOGIN_ATTEMPTS) {
             LocalDateTime unlockTime = lockoutTimes.get(username).plusMinutes(LOCKOUT_DURATION_MINUTES);
             apiResponse.put("accountLocked", true);
-            apiResponse.put("unlockTime", unlockTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            apiResponse.put("unlockTime", unlockTime.format(DateTimeFormatter.ofPattern(DateTimeFormatter_PATTERN)));
             apiResponse.put("lockoutDurationMinutes", LOCKOUT_DURATION_MINUTES);
         } else {
             apiResponse.put("accountLocked", false);
@@ -245,7 +289,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
                 lockoutTimes.put(username, lockoutTime);
                 LocalDateTime unlockTime = lockoutTime.plusMinutes(LOCKOUT_DURATION_MINUTES);
                 logger.warn("Account LOCKED for user '{}' after {} failed attempts. Will unlock at: {}", 
-                    username, MAX_LOGIN_ATTEMPTS, unlockTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    username, MAX_LOGIN_ATTEMPTS, unlockTime.format(DateTimeFormatter.ofPattern(DateTimeFormatter_PATTERN)));
             }
             
             return attempts;
@@ -263,7 +307,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
             if (expired) {
                 String username = entry.getKey();
                 logger.info("Cleaning expired lockout for user: '{}'. Was locked until: {}", 
-                    username, unlockTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    username, unlockTime.format(DateTimeFormatter.ofPattern(DateTimeFormatter_PATTERN)));
                 loginAttempts.remove(username);
             }
             return expired;
@@ -299,7 +343,7 @@ public class JsonAuthenticationFilter extends UsernamePasswordAuthenticationFilt
             if (lockoutTimes.containsKey(username)) {
                 userStatus.put("unlockTime", lockoutTimes.get(username)
                     .plusMinutes(LOCKOUT_DURATION_MINUTES)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                    .format(DateTimeFormatter.ofPattern(DateTimeFormatter_PATTERN)));
             }
             accountStatus.put(username, userStatus);
         }

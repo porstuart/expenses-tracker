@@ -1,6 +1,6 @@
-package com.budget.config;
+package com.budget.model.authentication;
 
-public class AuthenticationResult {
+public final class AuthenticationResult {
 
     private final boolean success;
     private final String errorMessage;
@@ -10,7 +10,7 @@ public class AuthenticationResult {
         this.errorMessage = errorMessage;
     }
 
-    public static AuthenticationResult success() {
+    public static AuthenticationResult successAuthenticated() {
         return new AuthenticationResult(true, null);
     }
 
